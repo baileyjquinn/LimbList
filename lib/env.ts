@@ -20,3 +20,18 @@ export const emailConfigured = Boolean(process.env.RESEND_API_KEY);
 
 export const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+/**
+ * Owner/admin emails (comma-separated) allowed to view the cross-company admin
+ * page. Server-only — never prefixed with NEXT_PUBLIC. If unset, no one is an
+ * admin and the page 404s for everyone.
+ */
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
+export function isAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase());
+}
