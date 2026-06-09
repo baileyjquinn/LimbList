@@ -22,6 +22,7 @@ import {
   TRUCK_ACCESS,
   YES_NO_UNSURE,
 } from "@/lib/constants";
+import { formatPhone } from "@/lib/phone";
 import type { MediaKind, UploadedMedia } from "@/lib/types";
 import { submitIntake } from "./actions";
 
@@ -253,8 +254,11 @@ export function IntakeForm({
               inputMode="tel"
               className={inputClass}
               value={fields.customer_phone}
-              onChange={(e) => set("customer_phone")(e.target.value)}
+              onChange={(e) =>
+                set("customer_phone")(formatPhone(e.target.value))
+              }
               autoComplete="tel"
+              placeholder="(662) 882-2299"
             />
           </Field>
           <Field

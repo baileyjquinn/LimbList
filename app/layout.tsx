@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Fraunces } from "next/font/google";
 import { APP_URL } from "@/lib/env";
 import "./globals.css";
@@ -33,6 +33,10 @@ export const metadata: Metadata = {
     description:
       "Customers send photos and the details that matter before you load the truck.",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1f3d2f",
 };
 
 export default function RootLayout({

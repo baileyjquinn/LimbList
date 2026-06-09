@@ -3,8 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminEmail, supabaseConfigured, APP_URL } from "@/lib/env";
-import { listAllCompanies } from "@/lib/admin";
+import { listAllCompanies, listOrphanedMediaPaths } from "@/lib/admin";
 import { formatDateTime, timeAgo } from "@/lib/format";
+import { cleanupOrphans } from "./actions";
 
 export const metadata = {
   title: "Admin — LimbList",
@@ -22,11 +23,15 @@ export default async function AdminPage() {
   // Non-admins get a 404 — the page doesn't reveal it exists.
   if (!isAdminEmail(user.email)) notFound();
 
-  const companies = await listAllCompanies();
+  const [companies, orphanPaths] = await Promise.all([
+    listAllCompanies(),
+    listOrphanedMediaPaths(),
+  ]);
   const totalSubmissions = companies.reduce(
     (sum, c) => sum + c.submissionCount,
     0,
   );
+  const orphanCount = orphanPaths.length;
 
   return (
     <div className="flex min-h-full flex-col">
@@ -123,6 +128,31 @@ export default async function AdminPage() {
             </div>
           </div>
         )}
+
+        <section className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-[--radius-xl2] border border-line bg-paper p-5 shadow-[var(--elevation-1)] sm:p-6">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-forest-deep">
+              Storage cleanup
+            </h2>
+            <p className="mt-1 text-sm text-ink-soft">
+              {orphanCount === 0
+                ? "No abandoned uploads to clean up."
+                : `${orphanCount} abandoned ${
+                    orphanCount === 1 ? "file" : "files"
+                  } (uploaded but never submitted, older than 2 hours).`}
+            </p>
+          </div>
+          {orphanCount > 0 && (
+            <form action={cleanupOrphans}>
+              <button
+                type="submit"
+                className="rounded-[--radius-card] bg-forest px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-forest-deep"
+              >
+                Delete {orphanCount} orphaned {orphanCount === 1 ? "file" : "files"}
+              </button>
+            </form>
+          )}
+        </section>
       </main>
     </div>
   );
