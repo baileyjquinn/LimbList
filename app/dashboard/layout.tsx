@@ -30,6 +30,12 @@ export default async function DashboardLayout({
             <span className="hidden text-sm text-ink-soft sm:inline">
               {context.company.name}
             </span>
+            <Link
+              href="/dashboard/settings"
+              className="rounded-full border border-line bg-paper px-3.5 py-1.5 text-sm font-medium text-ink-soft transition hover:border-forest/40 hover:text-forest-deep"
+            >
+              Settings
+            </Link>
             <form action={signOut}>
               <button
                 type="submit"

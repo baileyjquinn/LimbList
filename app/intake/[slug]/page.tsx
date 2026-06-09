@@ -9,6 +9,22 @@ type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
+export async function generateMetadata({ params }: PageProps) {
+  const { slug } = await params;
+  const company = await getCompanyBySlug(slug);
+  const name = company?.name ?? "your tree pro";
+  const title = `Send ${name} your tree photos`;
+  const description = `A few photos and quick questions give ${name} everything they need to quote your tree job — about 2 minutes.`;
+  return {
+    title,
+    description,
+    // Per-company intake links are semi-private; keep them out of search.
+    robots: { index: false, follow: false },
+    openGraph: { title, description, type: "website" },
+    twitter: { card: "summary_large_image", title, description },
+  };
+}
+
 export default async function IntakePage({ params }: PageProps) {
   const { slug } = await params;
   const company = await getCompanyBySlug(slug);

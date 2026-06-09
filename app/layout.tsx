@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Fraunces } from "next/font/google";
+import { APP_URL } from "@/lib/env";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,9 +16,23 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
   title: "LimbList — Send your tree photos, get a faster quote",
   description:
     "Snap a few photos of your tree, answer a few quick questions, and your tree pro gets everything they need to quote the job — without a wasted trip.",
+  openGraph: {
+    title: "LimbList — Send your tree photos, get a faster quote",
+    description:
+      "Customers send photos and the details that matter before you load the truck. Fewer wasted trips, faster quotes.",
+    siteName: "LimbList",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LimbList — Send your tree photos, get a faster quote",
+    description:
+      "Customers send photos and the details that matter before you load the truck.",
+  },
 };
 
 export default function RootLayout({
