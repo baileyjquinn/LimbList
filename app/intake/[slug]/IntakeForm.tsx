@@ -1,9 +1,17 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition, type ComponentType } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Field } from "@/components/ui/Field";
 import { ChoiceGroup } from "@/components/ui/ChoiceGroup";
+import {
+  BoltIcon,
+  CameraIcon,
+  CheckIcon,
+  LeafIcon,
+  UserIcon,
+  XIcon,
+} from "@/components/icons";
 import {
   HEIGHT_ESTIMATES,
   JOB_TYPES,
@@ -45,7 +53,7 @@ const initialFields = {
 };
 
 const inputClass =
-  "w-full min-h-12 rounded-[--radius-card] border border-line bg-paper px-4 py-3 text-base text-ink placeholder:text-ink-soft/60 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/30";
+  "w-full min-h-12 rounded-[--radius-card] border border-line bg-paper px-4 py-3 text-base text-ink placeholder:text-ink-soft/60 transition-colors focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/30";
 
 function kindOf(file: File): MediaKind {
   return file.type.startsWith("video") ? "video" : "photo";
@@ -67,6 +75,31 @@ export function IntakeForm({
 
   const set = (key: keyof typeof fields) => (value: string) =>
     setFields((prev) => ({ ...prev, [key]: value }));
+
+  // Progress: how many of the four sections have at least one answer.
+  const sectionsDone =
+    Number(
+      Boolean(
+        fields.customer_name && fields.customer_phone && fields.address,
+      ),
+    ) +
+    Number(
+      Boolean(
+        fields.job_type ||
+          fields.tree_count ||
+          fields.tree_condition ||
+          fields.height_estimate,
+      ),
+    ) +
+    Number(
+      Boolean(
+        fields.near_power_lines ||
+          fields.near_structures ||
+          fields.truck_access,
+      ),
+    ) +
+    Number(files.length > 0);
+  const progress = Math.round((sectionsDone / 4) * 100);
 
   function handleFiles(list: FileList | null) {
     if (!list) return;
@@ -152,255 +185,287 @@ export function IntakeForm({
   const videoCount = files.filter((f) => f.kind === "video").length;
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-7" noValidate>
-      <Section title="About you" step="1">
-        <Field label="Your name" htmlFor="customer_name" required>
-          <input
-            id="customer_name"
-            className={inputClass}
-            value={fields.customer_name}
-            onChange={(e) => set("customer_name")(e.target.value)}
-            autoComplete="name"
-          />
-        </Field>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Phone number" htmlFor="customer_phone" required>
-            <input
-              id="customer_phone"
-              type="tel"
-              inputMode="tel"
-              className={inputClass}
-              value={fields.customer_phone}
-              onChange={(e) => set("customer_phone")(e.target.value)}
-              autoComplete="tel"
+    <>
+      {/* sticky progress */}
+      <div className="sticky top-0 z-20 -mx-4 mb-6 bg-cream/85 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
+        <div className="mx-auto flex max-w-2xl items-center gap-3">
+          <div className="h-2 flex-1 overflow-hidden rounded-full bg-cream-deep">
+            <div
+              className="h-full rounded-full bg-forest transition-[width] duration-500 ease-out"
+              style={{ width: `${Math.max(progress, 4)}%` }}
             />
-          </Field>
-          <Field label="Email" htmlFor="customer_email" hint="Optional">
-            <input
-              id="customer_email"
-              type="email"
-              inputMode="email"
-              className={inputClass}
-              value={fields.customer_email}
-              onChange={(e) => set("customer_email")(e.target.value)}
-              autoComplete="email"
-            />
-          </Field>
+          </div>
+          <span className="shrink-0 text-sm font-semibold text-forest-deep">
+            {sectionsDone} of 4
+          </span>
         </div>
-        <Field
-          label="Property address"
-          htmlFor="address"
-          hint="Where is the tree?"
-          required
-        >
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
+        <Section title="About you" step="1" icon={UserIcon}>
+          <Field label="Your name" htmlFor="customer_name" required>
+            <input
+              id="customer_name"
+              className={inputClass}
+              value={fields.customer_name}
+              onChange={(e) => set("customer_name")(e.target.value)}
+              autoComplete="name"
+            />
+          </Field>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Phone number" htmlFor="customer_phone" required>
+              <input
+                id="customer_phone"
+                type="tel"
+                inputMode="tel"
+                className={inputClass}
+                value={fields.customer_phone}
+                onChange={(e) => set("customer_phone")(e.target.value)}
+                autoComplete="tel"
+              />
+            </Field>
+            <Field label="Email" htmlFor="customer_email" hint="Optional">
+              <input
+                id="customer_email"
+                type="email"
+                inputMode="email"
+                className={inputClass}
+                value={fields.customer_email}
+                onChange={(e) => set("customer_email")(e.target.value)}
+                autoComplete="email"
+              />
+            </Field>
+          </div>
+          <Field
+            label="Property address"
+            htmlFor="address"
+            hint="Where is the tree?"
+            required
+          >
+            <input
+              id="address"
+              className={inputClass}
+              value={fields.address}
+              onChange={(e) => set("address")(e.target.value)}
+              autoComplete="street-address"
+            />
+          </Field>
+        </Section>
+
+        <Section title="About the tree" step="2" icon={LeafIcon}>
+          <Field label="What do you need done?">
+            <ChoiceGroup
+              name="job_type"
+              options={JOB_TYPES}
+              value={fields.job_type}
+              onChange={set("job_type")}
+            />
+          </Field>
+          <Field label="How many trees?">
+            <ChoiceGroup
+              name="tree_count"
+              options={TREE_COUNTS}
+              value={fields.tree_count}
+              onChange={set("tree_count")}
+            />
+          </Field>
+          <Field label="Is the tree alive or dead?">
+            <ChoiceGroup
+              name="tree_condition"
+              options={TREE_CONDITIONS}
+              value={fields.tree_condition}
+              onChange={set("tree_condition")}
+            />
+          </Field>
+          <Field
+            label="Roughly how tall?"
+            hint="A rough guess is fine — compare it to your house."
+          >
+            <ChoiceGroup
+              name="height_estimate"
+              options={HEIGHT_ESTIMATES}
+              value={fields.height_estimate}
+              onChange={set("height_estimate")}
+            />
+          </Field>
+        </Section>
+
+        <Section title="Safety & access" step="3" icon={BoltIcon}>
+          <Field label="Is it near a power line?">
+            <ChoiceGroup
+              name="near_power_lines"
+              options={YES_NO_UNSURE}
+              value={fields.near_power_lines}
+              onChange={set("near_power_lines")}
+              flagOption="Yes"
+            />
+          </Field>
+          <Field label="Is it near your house or a building?">
+            <ChoiceGroup
+              name="near_structures"
+              options={YES_NO_UNSURE}
+              value={fields.near_structures}
+              onChange={set("near_structures")}
+              flagOption="Yes"
+            />
+          </Field>
+          <Field label="Can a truck get close to it?">
+            <ChoiceGroup
+              name="truck_access"
+              options={TRUCK_ACCESS}
+              value={fields.truck_access}
+              onChange={set("truck_access")}
+            />
+          </Field>
+          <Field
+            label="Anything else we should know?"
+            htmlFor="notes"
+            hint="Optional"
+          >
+            <textarea
+              id="notes"
+              rows={3}
+              className={`${inputClass} resize-y`}
+              value={fields.notes}
+              onChange={(e) => set("notes")(e.target.value)}
+            />
+          </Field>
+        </Section>
+
+        <Section title="Photos & video" step="4" icon={CameraIcon}>
+          <p className="-mt-1 text-base text-ink-soft">
+            This is the most helpful part. Add a few photos from different angles
+            — and a short video if you can.
+          </p>
+
           <input
-            id="address"
-            className={inputClass}
-            value={fields.address}
-            onChange={(e) => set("address")(e.target.value)}
-            autoComplete="street-address"
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*"
+            multiple
+            capture="environment"
+            className="sr-only"
+            onChange={(e) => handleFiles(e.target.files)}
           />
-        </Field>
-      </Section>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex min-h-36 w-full cursor-pointer flex-col items-center justify-center gap-2.5 rounded-[--radius-xl2] border-2 border-dashed border-forest/35 bg-forest/[0.04] px-4 py-8 text-center transition-colors duration-200 hover:border-forest hover:bg-forest/[0.08]"
+          >
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-forest/12 text-forest">
+              <CameraIcon className="h-7 w-7" />
+            </span>
+            <span className="text-lg font-semibold text-forest-deep">
+              Add photos or video
+            </span>
+            <span className="text-sm text-ink-soft">
+              Tap to use your camera or pick from your phone
+            </span>
+          </button>
 
-      <Section title="About the tree" step="2">
-        <Field label="What do you need done?">
-          <ChoiceGroup
-            name="job_type"
-            options={JOB_TYPES}
-            value={fields.job_type}
-            onChange={set("job_type")}
-          />
-        </Field>
-        <Field label="How many trees?">
-          <ChoiceGroup
-            name="tree_count"
-            options={TREE_COUNTS}
-            value={fields.tree_count}
-            onChange={set("tree_count")}
-          />
-        </Field>
-        <Field label="Is the tree alive or dead?">
-          <ChoiceGroup
-            name="tree_condition"
-            options={TREE_CONDITIONS}
-            value={fields.tree_condition}
-            onChange={set("tree_condition")}
-          />
-        </Field>
-        <Field
-          label="Roughly how tall?"
-          hint="A rough guess is fine — compare it to your house."
-        >
-          <ChoiceGroup
-            name="height_estimate"
-            options={HEIGHT_ESTIMATES}
-            value={fields.height_estimate}
-            onChange={set("height_estimate")}
-          />
-        </Field>
-      </Section>
-
-      <Section title="Safety & access" step="3">
-        <Field label="Is it near a power line?">
-          <ChoiceGroup
-            name="near_power_lines"
-            options={YES_NO_UNSURE}
-            value={fields.near_power_lines}
-            onChange={set("near_power_lines")}
-            flagOption="Yes"
-          />
-        </Field>
-        <Field label="Is it near your house or a building?">
-          <ChoiceGroup
-            name="near_structures"
-            options={YES_NO_UNSURE}
-            value={fields.near_structures}
-            onChange={set("near_structures")}
-            flagOption="Yes"
-          />
-        </Field>
-        <Field label="Can a truck get close to it?">
-          <ChoiceGroup
-            name="truck_access"
-            options={TRUCK_ACCESS}
-            value={fields.truck_access}
-            onChange={set("truck_access")}
-          />
-        </Field>
-        <Field label="Anything else we should know?" htmlFor="notes" hint="Optional">
-          <textarea
-            id="notes"
-            rows={3}
-            className={`${inputClass} resize-y`}
-            value={fields.notes}
-            onChange={(e) => set("notes")(e.target.value)}
-          />
-        </Field>
-      </Section>
-
-      <Section title="Photos & video" step="4">
-        <p className="-mt-1 text-base text-ink-soft">
-          This is the most helpful part. Add a few photos from different angles —
-          and a short video if you can.
-        </p>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*,video/*"
-          multiple
-          capture="environment"
-          className="sr-only"
-          onChange={(e) => handleFiles(e.target.files)}
-        />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="flex min-h-32 w-full flex-col items-center justify-center gap-2 rounded-[--radius-xl2] border-2 border-dashed border-forest/40 bg-paper px-4 py-8 text-center transition-colors hover:border-forest hover:bg-cream-deep"
-        >
-          <CameraIcon />
-          <span className="text-lg font-semibold text-forest-deep">
-            Add photos or video
-          </span>
-          <span className="text-sm text-ink-soft">
-            Tap to use your camera or pick from your phone
-          </span>
-        </button>
-
-        {files.length > 0 && (
-          <>
-            <p className="text-sm font-medium text-ink-soft">
-              {photoCount > 0 && `${photoCount} photo${photoCount === 1 ? "" : "s"}`}
-              {photoCount > 0 && videoCount > 0 && " · "}
-              {videoCount > 0 && `${videoCount} video${videoCount === 1 ? "" : "s"}`}
-              {!canUpload && " (preview only — saving is off in demo mode)"}
-            </p>
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-              {files.map((picked, index) => (
-                <div
-                  key={picked.url}
-                  className="group relative aspect-square overflow-hidden rounded-[--radius-card] border border-line bg-cream-deep"
-                >
-                  {picked.kind === "video" ? (
-                    <video
-                      src={picked.url}
-                      className="h-full w-full object-cover"
-                      muted
-                    />
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={picked.url}
-                      alt={`Upload ${index + 1}`}
-                      className="h-full w-full object-cover"
-                    />
-                  )}
-                  {picked.kind === "video" && (
-                    <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">
-                      Video
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => removeFile(index)}
-                    aria-label="Remove"
-                    className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white opacity-90 transition hover:bg-black/80"
+          {files.length > 0 && (
+            <>
+              <p className="text-sm font-medium text-ink-soft">
+                {photoCount > 0 &&
+                  `${photoCount} photo${photoCount === 1 ? "" : "s"}`}
+                {photoCount > 0 && videoCount > 0 && " · "}
+                {videoCount > 0 &&
+                  `${videoCount} video${videoCount === 1 ? "" : "s"}`}
+                {!canUpload && " (preview only — saving is off in demo mode)"}
+              </p>
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                {files.map((picked, index) => (
+                  <div
+                    key={picked.url}
+                    className="group relative aspect-square overflow-hidden rounded-[--radius-card] border border-line bg-cream-deep shadow-[var(--elevation-1)]"
                   >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          </>
+                    {picked.kind === "video" ? (
+                      <video
+                        src={picked.url}
+                        className="h-full w-full object-cover"
+                        muted
+                      />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={picked.url}
+                        alt={`Upload ${index + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                    {picked.kind === "video" && (
+                      <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">
+                        Video
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      aria-label="Remove"
+                      className="absolute right-1 top-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-black/55 text-white opacity-90 transition hover:bg-black/80"
+                    >
+                      <XIcon className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </Section>
+
+        {error && (
+          <div
+            role="alert"
+            className="rounded-[--radius-card] border border-amber-deep/40 bg-amber/15 px-4 py-3 text-base font-medium text-amber-deep"
+          >
+            {error}
+          </div>
         )}
-      </Section>
 
-      {error && (
-        <div
-          role="alert"
-          className="rounded-[--radius-card] border border-amber-deep/40 bg-amber/15 px-4 py-3 text-base font-medium text-amber-deep"
+        <button
+          type="submit"
+          disabled={busy}
+          className="mt-1 inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-[--radius-xl2] bg-forest px-6 text-lg font-semibold text-white shadow-[var(--elevation-2)] transition-all duration-200 hover:bg-forest-deep hover:shadow-[var(--elevation-3)] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {error}
-        </div>
-      )}
-
-      <button
-        type="submit"
-        disabled={busy}
-        className="mt-1 inline-flex min-h-14 items-center justify-center rounded-[--radius-xl2] bg-forest px-6 text-lg font-semibold text-white shadow-[var(--shadow-card)] transition hover:bg-forest-deep disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {busy
-          ? status === "uploading"
-            ? "Sending your photos…"
-            : "Sending…"
-          : "Send to my tree pro"}
-      </button>
-      <p className="text-center text-sm text-ink-soft">
-        Goes straight to {companyName}. No account needed.
-      </p>
-    </form>
+          {busy
+            ? status === "uploading"
+              ? "Sending your photos…"
+              : "Sending…"
+            : "Send to my tree pro"}
+        </button>
+        <p className="text-center text-sm text-ink-soft">
+          Goes straight to {companyName}. No account needed.
+        </p>
+      </form>
+    </>
   );
 }
 
 function Section({
   title,
   step,
+  icon: Icon,
   children,
 }: {
   title: string;
   step: string;
+  icon: ComponentType<{ className?: string }>;
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-[--radius-xl2] border border-line bg-cream/60 p-5 sm:p-7">
+    <section className="rounded-[--radius-xl2] border border-line bg-paper p-5 shadow-[var(--elevation-2)] sm:p-7">
       <div className="mb-5 flex items-center gap-3">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-forest text-sm font-bold text-white">
-          {step}
+        <span className="flex h-11 w-11 items-center justify-center rounded-[--radius-card] bg-forest/10 text-forest">
+          <Icon className="h-5 w-5" />
         </span>
-        <h2 className="font-display text-2xl font-semibold text-forest-deep">
-          {title}
-        </h2>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-forest-bright">
+            Step {step}
+          </p>
+          <h2 className="font-display text-2xl font-semibold leading-tight text-forest-deep">
+            {title}
+          </h2>
+        </div>
       </div>
       <div className="flex flex-col gap-5">{children}</div>
     </section>
@@ -409,17 +474,9 @@ function Section({
 
 function SuccessPanel({ companyName }: { companyName: string }) {
   return (
-    <div className="rounded-[--radius-xl2] border border-line bg-paper p-8 text-center sm:p-12">
-      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-forest/10">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path
-            d="m5 13 4 4L19 7"
-            stroke="var(--forest)"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+    <div className="edge-light rounded-[--radius-xl2] border border-line bg-paper p-8 text-center sm:p-12">
+      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-forest/10 text-forest">
+        <CheckIcon className="h-9 w-9" />
       </div>
       <h2 className="font-display text-3xl font-semibold text-forest-deep">
         Sent. You&apos;re all set.
@@ -428,18 +485,5 @@ function SuccessPanel({ companyName }: { companyName: string }) {
         {`${companyName} just got your photos and details. They'll reach out with next steps — usually a quote or a quick call.`}
       </p>
     </div>
-  );
-}
-
-function CameraIcon() {
-  return (
-    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1l.8-1.4A1.5 1.5 0 0 1 9.6 4h4.8a1.5 1.5 0 0 1 1.3.6L16.5 6h1A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-8Z"
-        stroke="var(--forest)"
-        strokeWidth="1.6"
-      />
-      <circle cx="12" cy="12.5" r="3.2" stroke="var(--forest)" strokeWidth="1.6" />
-    </svg>
   );
 }

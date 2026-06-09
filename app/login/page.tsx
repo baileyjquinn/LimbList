@@ -20,7 +20,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
   }
 
   return (
-    <main className="grain relative flex min-h-full items-center justify-center px-4 py-16">
+    <main className="hero-glow grain relative flex min-h-full items-center justify-center px-4 py-16">
       <div className="relative z-10 w-full max-w-sm">
         <div className="mb-8 text-center">
           <Logo className="mb-6 justify-center" />

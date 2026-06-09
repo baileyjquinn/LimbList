@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { LeafIcon } from "@/components/icons";
 import { getCompanyBySlug } from "@/lib/companies";
 import { supabaseConfigured, serviceRoleConfigured } from "@/lib/env";
 import { IntakeForm } from "./IntakeForm";
@@ -19,7 +20,8 @@ export default async function IntakePage({ params }: PageProps) {
   const canUpload = supabaseConfigured && serviceRoleConfigured;
 
   return (
-    <main className="relative grain min-h-full">
+    <main className="hero-glow relative min-h-full">
+      <div className="grain absolute inset-0 -z-0" aria-hidden />
       <div className="relative z-10 mx-auto w-full max-w-2xl px-4 pb-20 pt-8 sm:px-6">
         <header className="mb-8 flex items-center justify-between">
           <Logo />
@@ -28,14 +30,15 @@ export default async function IntakePage({ params }: PageProps) {
           </span>
         </header>
 
-        <div className="mb-9">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-forest-bright">
+        <div className="mb-8">
+          <span className="inline-flex items-center gap-2 rounded-full border border-forest/20 bg-forest/[0.07] px-3 py-1 text-sm font-semibold text-forest-deep">
+            <LeafIcon className="h-4 w-4" />
             Tree job request
-          </p>
-          <h1 className="font-display text-[2.6rem] font-semibold leading-[1.05] tracking-tight text-forest-deep sm:text-5xl">
+          </span>
+          <h1 className="mt-4 font-display text-[2.6rem] font-semibold leading-[1.05] tracking-tight text-forest-deep sm:text-5xl">
             Show {company.name} your tree.
           </h1>
-          <p className="mt-4 max-w-xl text-lg text-ink-soft">
+          <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-soft">
             A few quick questions and some photos give them everything they need
             to quote your job — so nobody wastes a trip. Takes about 2 minutes.
           </p>

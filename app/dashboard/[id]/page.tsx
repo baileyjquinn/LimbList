@@ -3,6 +3,13 @@ import { notFound } from "next/navigation";
 import { getSubmission, getSubmissionMedia } from "@/lib/submissions";
 import { StatusBadge } from "@/components/StatusBadge";
 import { FlagChips } from "@/components/Flags";
+import {
+  ArrowRightIcon,
+  ImageIcon,
+  MailIcon,
+  MapPinIcon,
+  PhoneIcon,
+} from "@/components/icons";
 import { formatDateTime } from "@/lib/format";
 import { StatusControl } from "./StatusControl";
 
@@ -34,15 +41,16 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
     <div className="flex flex-col gap-6">
       <Link
         href="/dashboard"
-        className="text-sm font-medium text-ink-soft transition hover:text-forest-deep"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-forest-deep"
       >
-        ← All requests
+        <ArrowRightIcon className="h-4 w-4 rotate-180" />
+        All requests
       </Link>
 
-      <div className="flex flex-col gap-4 rounded-[--radius-xl2] border border-line bg-paper p-5 shadow-[var(--shadow-card)] sm:p-7">
+      <div className="flex flex-col gap-5 rounded-[--radius-xl2] border border-line bg-paper p-5 shadow-[var(--elevation-2)] sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <h1 className="font-display text-3xl font-semibold text-ink">
                 {submission.customer_name}
               </h1>
@@ -58,18 +66,20 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
           <StatusControl id={submission.id} status={submission.status} />
         </div>
 
-        <div className="flex flex-wrap gap-2 border-t border-line pt-4">
+        <div className="flex flex-wrap gap-2 border-t border-line pt-5">
           <a
             href={`tel:${submission.customer_phone}`}
-            className="rounded-[--radius-card] bg-forest px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-forest-deep"
+            className="inline-flex items-center gap-2 rounded-[--radius-card] bg-forest px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-forest-deep"
           >
-            Call {submission.customer_phone}
+            <PhoneIcon className="h-4 w-4" />
+            {submission.customer_phone}
           </a>
           {submission.customer_email && (
             <a
               href={`mailto:${submission.customer_email}`}
-              className="rounded-[--radius-card] border border-line bg-paper px-4 py-2.5 text-sm font-semibold text-ink transition hover:border-forest/40"
+              className="inline-flex items-center gap-2 rounded-[--radius-card] border border-line bg-paper px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:border-forest/40"
             >
+              <MailIcon className="h-4 w-4" />
               Email
             </a>
           )}
@@ -77,14 +87,15 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
             href={mapsHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-[--radius-card] border border-line bg-paper px-4 py-2.5 text-sm font-semibold text-ink transition hover:border-forest/40"
+            className="inline-flex items-center gap-2 rounded-[--radius-card] border border-line bg-paper px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:border-forest/40"
           >
-            {submission.address} ↗
+            <MapPinIcon className="h-4 w-4" />
+            {submission.address}
           </a>
         </div>
       </div>
 
-      <section className="rounded-[--radius-xl2] border border-line bg-paper p-5 shadow-[var(--shadow-card)] sm:p-7">
+      <section className="rounded-[--radius-xl2] border border-line bg-paper p-5 shadow-[var(--elevation-2)] sm:p-7">
         <h2 className="mb-4 font-display text-xl font-semibold text-forest-deep">
           The job
         </h2>
@@ -102,8 +113,10 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
           ))}
         </dl>
         {submission.notes && (
-          <div className="mt-5">
-            <p className="text-sm text-ink-soft">Notes from the customer</p>
+          <div className="mt-5 rounded-[--radius-card] bg-cream/70 p-4">
+            <p className="text-sm font-semibold text-ink-soft">
+              Notes from the customer
+            </p>
             <p className="mt-1 whitespace-pre-wrap text-base text-ink">
               {submission.notes}
             </p>
@@ -111,7 +124,7 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
         )}
       </section>
 
-      <section className="rounded-[--radius-xl2] border border-line bg-paper p-5 shadow-[var(--shadow-card)] sm:p-7">
+      <section className="rounded-[--radius-xl2] border border-line bg-paper p-5 shadow-[var(--elevation-2)] sm:p-7">
         <h2 className="mb-4 font-display text-xl font-semibold text-forest-deep">
           Photos &amp; video
           <span className="ml-2 text-base font-normal text-ink-soft">
@@ -119,15 +132,18 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
           </span>
         </h2>
         {media.length === 0 ? (
-          <p className="text-base text-ink-soft">
-            No photos or video were attached to this request.
-          </p>
+          <div className="flex flex-col items-center gap-2 rounded-[--radius-card] border border-dashed border-line bg-cream/40 py-10 text-center">
+            <ImageIcon className="h-8 w-8 text-ink-soft/60" />
+            <p className="text-base text-ink-soft">
+              No photos or video were attached to this request.
+            </p>
+          </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {media.map((m) => (
               <div
                 key={m.id}
-                className="overflow-hidden rounded-[--radius-card] border border-line bg-cream-deep"
+                className="overflow-hidden rounded-[--radius-card] border border-line bg-cream-deep shadow-[var(--elevation-1)]"
               >
                 {m.url ? (
                   m.kind === "video" ? (
