@@ -2,15 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { createClient } from "@/lib/supabase/server";
-import { supabaseConfigured } from "@/lib/env";
-import { LoginForm } from "./LoginForm";
+import { serviceRoleConfigured, supabaseConfigured } from "@/lib/env";
+import { SignupForm } from "./SignupForm";
 
-type PageProps = {
-  searchParams: Promise<{ next?: string }>;
-};
-
-export default async function LoginPage({ searchParams }: PageProps) {
-  const { next } = await searchParams;
+export default async function SignupPage() {
+  const canSignUp = supabaseConfigured && serviceRoleConfigured;
 
   if (supabaseConfigured) {
     const supabase = await createClient();
@@ -22,38 +18,35 @@ export default async function LoginPage({ searchParams }: PageProps) {
 
   return (
     <main className="hero-glow grain relative flex min-h-full items-center justify-center px-4 py-16">
-      <div className="relative z-10 w-full max-w-sm">
+      <div className="relative z-10 w-full max-w-md">
         <div className="mb-8 text-center">
           <Logo className="mb-6 justify-center" />
           <h1 className="font-display text-3xl font-semibold text-forest-deep">
-            Welcome back
+            Start taking photo intakes
           </h1>
           <p className="mt-2 text-base text-ink-soft">
-            Sign in to see your tree job requests.
+            Create your company account and get a shareable intake link in under
+            a minute.
           </p>
         </div>
 
-        <div className="rounded-[--radius-xl2] border border-line bg-cream/70 p-6 sm:p-8">
-          {supabaseConfigured ? (
-            <LoginForm next={next ?? "/dashboard"} />
+        <div className="rounded-[--radius-xl2] border border-line bg-cream/70 p-6 shadow-[var(--elevation-2)] sm:p-8">
+          {canSignUp ? (
+            <SignupForm />
           ) : (
             <p className="text-center text-base text-ink-soft">
-              The dashboard needs Supabase configured. Add your keys to
-              <code className="mx-1 rounded bg-cream-deep px-1.5 py-0.5 text-sm">
-                .env.local
-              </code>
-              to enable sign in.
+              Signups aren&apos;t available in this environment yet.
             </p>
           )}
         </div>
 
         <p className="mt-6 text-center text-base text-ink-soft">
-          New here?{" "}
+          Already have an account?{" "}
           <Link
-            href="/signup"
+            href="/login"
             className="font-semibold text-forest-deep underline-offset-4 hover:underline"
           >
-            Create an account
+            Sign in
           </Link>
         </p>
       </div>

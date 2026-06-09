@@ -1,43 +1,67 @@
 import Link from "next/link";
-import { getDashboardContext, listSubmissions } from "@/lib/submissions";
+import {
+  getDashboardContext,
+  getStatusCounts,
+  listSubmissions,
+} from "@/lib/submissions";
 import { APP_URL } from "@/lib/env";
 import { StatusBadge } from "@/components/StatusBadge";
 import { FlagChips } from "@/components/Flags";
 import { ArrowRightIcon, CameraIcon } from "@/components/icons";
 import { timeAgo } from "@/lib/format";
 import { ShareLink } from "./ShareLink";
+import { FilterBar } from "./FilterBar";
 
-export default async function DashboardPage() {
+type PageProps = {
+  searchParams: Promise<{ status?: string; q?: string; archived?: string }>;
+};
+
+export default async function DashboardPage({ searchParams }: PageProps) {
+  const { status, q, archived: archivedParam } = await searchParams;
+  const archived = archivedParam === "1";
+
   const context = await getDashboardContext();
-  const submissions = await listSubmissions();
+  const [submissions, counts] = await Promise.all([
+    listSubmissions({ status, q, archived }),
+    getStatusCounts(),
+  ]);
   const intakeUrl = context ? `${APP_URL}/intake/${context.company.slug}` : "";
 
-  const newCount = submissions.filter((s) => s.status === "new").length;
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  const newCount = counts["new"] ?? 0;
+  const isFiltered = Boolean(status || q);
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-semibold text-forest-deep">
-            Job requests
+            {archived ? "Archived requests" : "Job requests"}
           </h1>
           <p className="mt-1 text-base text-ink-soft">
-            {submissions.length === 0
-              ? "No requests yet."
-              : `${submissions.length} total${newCount ? ` · ${newCount} new` : ""}`}
+            {`${submissions.length} ${submissions.length === 1 ? "request" : "requests"}`}
+            {!archived && newCount ? ` · ${newCount} new` : ""}
           </p>
         </div>
-        {newCount > 0 && (
+        {!archived && newCount > 0 && (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-forest px-3 py-1.5 text-sm font-semibold text-white shadow-[var(--elevation-1)]">
             {newCount} new to review
           </span>
         )}
       </div>
 
-      {intakeUrl && <ShareLink url={intakeUrl} />}
+      {intakeUrl && !archived && <ShareLink url={intakeUrl} />}
+
+      <FilterBar counts={counts} total={total} archived={archived} />
 
       {submissions.length === 0 ? (
-        <EmptyState url={intakeUrl} />
+        isFiltered || archived ? (
+          <p className="rounded-[--radius-xl2] border border-dashed border-line bg-cream/50 p-8 text-center text-base text-ink-soft">
+            No requests match this view.
+          </p>
+        ) : (
+          <EmptyState url={intakeUrl} />
+        )
       ) : (
         <ul className="flex flex-col gap-3">
           {submissions.map((s) => {

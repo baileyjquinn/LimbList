@@ -55,6 +55,9 @@ const initialFields = {
 const inputClass =
   "w-full min-h-12 rounded-[--radius-card] border border-line bg-paper px-4 py-3 text-base text-ink placeholder:text-ink-soft/60 transition-colors focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/30";
 
+const MAX_FILES = 15;
+const MAX_FILE_MB = 50;
+
 function kindOf(file: File): MediaKind {
   return file.type.startsWith("video") ? "video" : "photo";
 }
@@ -67,6 +70,7 @@ export function IntakeForm({
 }: IntakeFormProps) {
   const [fields, setFields] = useState(initialFields);
   const [files, setFiles] = useState<PickedFile[]>([]);
+  const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "uploading">("idle");
   const [submitted, setSubmitted] = useState(false);
@@ -103,12 +107,22 @@ export function IntakeForm({
 
   function handleFiles(list: FileList | null) {
     if (!list) return;
-    const picked: PickedFile[] = Array.from(list).map((file) => ({
+    const incoming = Array.from(list);
+    const tooBig = incoming.filter((f) => f.size > MAX_FILE_MB * 1024 * 1024);
+    const ok = incoming.filter((f) => f.size <= MAX_FILE_MB * 1024 * 1024);
+
+    if (tooBig.length > 0) {
+      setError(
+        `Some files are over ${MAX_FILE_MB}MB and were skipped. Try a shorter video.`,
+      );
+    }
+
+    const picked: PickedFile[] = ok.map((file) => ({
       file,
       url: URL.createObjectURL(file),
       kind: kindOf(file),
     }));
-    setFiles((prev) => [...prev, ...picked].slice(0, 30));
+    setFiles((prev) => [...prev, ...picked].slice(0, MAX_FILES));
   }
 
   function removeFile(index: number) {
@@ -157,7 +171,7 @@ export function IntakeForm({
       try {
         setStatus("uploading");
         const media = await uploadFiles();
-        const result = await submitIntake(slug, { ...fields, media });
+        const result = await submitIntake(slug, { ...fields, media }, honeypot);
         if (!result.ok) {
           setError(result.error);
           setStatus("idle");
@@ -202,6 +216,18 @@ export function IntakeForm({
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
+        {/* Honeypot: hidden from people, tempting to bots. */}
+        <input
+          type="text"
+          name="company_website"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+          className="pointer-events-none absolute left-[-9999px] h-px w-px opacity-0"
+        />
+
         <Section title="About you" step="1" icon={UserIcon}>
           <Field label="Your name" htmlFor="customer_name" required>
             <input

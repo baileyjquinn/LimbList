@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { LockIcon } from "@/components/icons";
 import { login, type LoginState } from "./actions";
 
 const inputClass =
@@ -54,10 +55,15 @@ export function LoginForm({ next }: { next: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-1 inline-flex min-h-12 items-center justify-center rounded-[--radius-card] bg-forest px-6 text-base font-semibold text-white transition hover:bg-forest-deep disabled:opacity-60"
+        className="mt-1 inline-flex min-h-12 cursor-pointer items-center justify-center rounded-[--radius-card] bg-forest px-6 text-base font-semibold text-white transition hover:bg-forest-deep disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Signing in…" : "Sign in"}
       </button>
+
+      <p className="flex items-center justify-center gap-1.5 text-center text-sm text-ink-soft">
+        <LockIcon className="h-3.5 w-3.5" />
+        You&apos;ll stay signed in on this device.
+      </p>
     </form>
   );
 }

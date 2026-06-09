@@ -124,3 +124,65 @@ export async function sendSubmissionEmail(args: SendArgs): Promise<void> {
 
   console.log(`[email] notification sent (id: ${data?.id ?? "?"})`);
 }
+
+type CustomerArgs = {
+  to: string;
+  companyName: string;
+  customerName: string;
+};
+
+function buildCustomerHtml({ companyName, customerName }: CustomerArgs): string {
+  const firstName = customerName.split(" ")[0] || "there";
+  return `
+  <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#f6f3ea;padding:28px 16px;">
+    <div style="max-width:520px;margin:0 auto;background:#fffdf8;border:1px solid #e7e2d4;border-radius:18px;overflow:hidden;">
+      <div style="padding:22px 28px;background:#1f3d2f;color:#f6f3ea;">
+        <div style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;">LimbList</div>
+        <div style="font-size:21px;font-weight:700;margin-top:4px;">Request received ✓</div>
+      </div>
+      <div style="padding:24px 28px;color:#2a2620;font-size:16px;line-height:1.55;">
+        <p style="margin:0 0 14px;">Hi ${escapeHtml(firstName)},</p>
+        <p style="margin:0 0 14px;">
+          Thanks — your photos and details were sent to
+          <strong>${escapeHtml(companyName)}</strong>. They have everything they
+          need to look at your tree job.
+        </p>
+        <p style="margin:0 0 14px;">
+          They'll reach out with next steps, usually a quote or a quick call.
+          No need to do anything else.
+        </p>
+        <p style="margin:18px 0 0;color:#8a8170;font-size:13px;">
+          Sent on behalf of ${escapeHtml(companyName)} via LimbList.
+        </p>
+      </div>
+    </div>
+  </div>`;
+}
+
+/**
+ * Confirmation email to the homeowner. Best-effort and silent on failure.
+ * NOTE: until a custom domain is verified in Resend, the default sender can
+ * only deliver to the Resend account owner, so this won't reach real
+ * customers yet — it's wired and ready for when the domain is verified.
+ */
+export async function sendCustomerConfirmationEmail(
+  args: CustomerArgs,
+): Promise<void> {
+  if (!emailConfigured || !args.to) return;
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const from = process.env.RESEND_FROM ?? "LimbList <onboarding@resend.dev>";
+
+  const { error } = await resend.emails.send({
+    from,
+    to: args.to,
+    subject: `We got your request — ${args.companyName}`,
+    html: buildCustomerHtml(args),
+  });
+
+  if (error) {
+    throw new Error(
+      `Resend customer send failed: ${error.message ?? JSON.stringify(error)}`,
+    );
+  }
+}

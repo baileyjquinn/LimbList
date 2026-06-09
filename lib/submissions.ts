@@ -39,18 +39,56 @@ export async function getDashboardContext(): Promise<DashboardContext | null> {
   return { userEmail: user.email ?? "", company: company as Company };
 }
 
-export async function listSubmissions(): Promise<Submission[]> {
+export interface SubmissionFilters {
+  status?: string;
+  q?: string;
+  archived?: boolean;
+}
+
+export async function listSubmissions(
+  filters: SubmissionFilters = {},
+): Promise<Submission[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("submissions")
     .select("*")
+    .eq("archived", filters.archived ?? false)
     .order("created_at", { ascending: false });
 
+  if (filters.status && filters.status !== "all") {
+    query = query.eq("status", filters.status);
+  }
+
+  if (filters.q) {
+    // Strip characters that would break the PostgREST or() filter syntax.
+    const safe = filters.q.replace(/[%,()]/g, " ").trim();
+    if (safe) {
+      query = query.or(`customer_name.ilike.%${safe}%,address.ilike.%${safe}%`);
+    }
+  }
+
+  const { data, error } = await query;
   if (error) {
     console.error("listSubmissions failed", error);
     return [];
   }
   return (data ?? []) as Submission[];
+}
+
+/** Counts of non-archived submissions per status, for the filter bar. */
+export async function getStatusCounts(): Promise<Record<string, number>> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("submissions")
+    .select("status")
+    .eq("archived", false);
+
+  if (error || !data) return {};
+  return data.reduce<Record<string, number>>((acc, row) => {
+    const s = (row as { status: string }).status;
+    acc[s] = (acc[s] ?? 0) + 1;
+    return acc;
+  }, {});
 }
 
 export async function getSubmission(id: string): Promise<Submission | null> {

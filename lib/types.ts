@@ -40,6 +40,9 @@ export interface Submission {
   truck_access: string | null;
   notes: string | null;
   status: SubmissionStatus;
+  internal_notes: string | null;
+  archived: boolean;
+  ip_hash: string | null;
   created_at: string;
 }
 

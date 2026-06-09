@@ -60,12 +60,20 @@ function SiteHeader() {
     <div className="sticky top-0 z-30 px-4 pt-4 sm:px-6">
       <header className="mx-auto flex w-full max-w-5xl items-center justify-between rounded-2xl border border-line/80 bg-paper/80 px-4 py-2.5 shadow-[var(--elevation-2)] backdrop-blur-md sm:px-5">
         <Logo />
-        <Link
-          href="/login"
-          className="rounded-full border border-line bg-cream px-4 py-2 text-sm font-semibold text-ink-soft transition-colors duration-200 hover:border-forest/40 hover:text-forest-deep"
-        >
-          Tree pro sign in
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/login"
+            className="rounded-full px-3 py-2 text-sm font-semibold text-ink-soft transition-colors duration-200 hover:text-forest-deep"
+          >
+            Sign in
+          </Link>
+          <Link
+            href="/signup"
+            className="rounded-full bg-forest px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-forest-deep"
+          >
+            Start free
+          </Link>
+        </div>
       </header>
     </div>
   );
@@ -99,10 +107,10 @@ function Hero() {
               <ArrowRightIcon className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
             <Link
-              href="/login"
+              href="/signup"
               className="inline-flex min-h-12 items-center justify-center rounded-[--radius-card] border border-line bg-paper px-6 text-base font-semibold text-ink transition-colors duration-200 hover:border-forest/40"
             >
-              Open the dashboard
+              Start free
             </Link>
           </div>
           <p className="mt-5 flex items-center gap-2 text-sm text-ink-soft">

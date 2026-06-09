@@ -4,7 +4,11 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { SUBMISSION_STATUSES } from "@/lib/constants";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { SUBMISSION_STATUSES, STORAGE_BUCKET } from "@/lib/constants";
+import { serviceRoleConfigured } from "@/lib/env";
+
+const idSchema = z.string().uuid();
 
 export async function signOut() {
   const supabase = await createClient();
@@ -38,4 +42,71 @@ export async function updateStatus(formData: FormData): Promise<void> {
 
   revalidatePath(`/dashboard/${parsed.data.id}`);
   revalidatePath("/dashboard");
+}
+
+export async function saveNotes(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  if (!idSchema.safeParse(id).success) return;
+  const notes = String(formData.get("internal_notes") ?? "").slice(0, 4000);
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("submissions")
+    .update({ internal_notes: notes || null })
+    .eq("id", id);
+
+  if (error) {
+    console.error("saveNotes failed", error);
+    return;
+  }
+  revalidatePath(`/dashboard/${id}`);
+}
+
+export async function toggleArchive(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  if (!idSchema.safeParse(id).success) return;
+  const archived = String(formData.get("archived") ?? "") === "true";
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("submissions")
+    .update({ archived })
+    .eq("id", id);
+
+  if (error) {
+    console.error("toggleArchive failed", error);
+    return;
+  }
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
+}
+
+export async function deleteSubmission(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  if (!idSchema.safeParse(id).success) return;
+
+  const supabase = await createClient();
+
+  // Remove storage objects first (RLS scopes the media read to this company).
+  const { data: media } = await supabase
+    .from("submission_media")
+    .select("storage_path")
+    .eq("submission_id", id);
+
+  if (media && media.length > 0 && serviceRoleConfigured) {
+    const admin = createAdminClient();
+    await admin.storage
+      .from(STORAGE_BUCKET)
+      .remove(media.map((m) => (m as { storage_path: string }).storage_path));
+  }
+
+  // Delete the submission; cascade removes its media rows. RLS scopes by company.
+  const { error } = await supabase.from("submissions").delete().eq("id", id);
+  if (error) {
+    console.error("deleteSubmission failed", error);
+    return;
+  }
+
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
 }

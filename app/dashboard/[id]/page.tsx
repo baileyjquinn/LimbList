@@ -12,6 +12,8 @@ import {
 } from "@/components/icons";
 import { formatDateTime } from "@/lib/format";
 import { StatusControl } from "./StatusControl";
+import { NotesEditor } from "./NotesEditor";
+import { SubmissionActions } from "./SubmissionActions";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -126,6 +128,13 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
 
       <section className="rounded-[--radius-xl2] border border-line bg-paper p-5 shadow-[var(--elevation-2)] sm:p-7">
         <h2 className="mb-4 font-display text-xl font-semibold text-forest-deep">
+          Your notes
+        </h2>
+        <NotesEditor id={submission.id} notes={submission.internal_notes} />
+      </section>
+
+      <section className="rounded-[--radius-xl2] border border-line bg-paper p-5 shadow-[var(--elevation-2)] sm:p-7">
+        <h2 className="mb-4 font-display text-xl font-semibold text-forest-deep">
           Photos &amp; video
           <span className="ml-2 text-base font-normal text-ink-soft">
             ({media.length})
@@ -172,6 +181,13 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
           </div>
         )}
       </section>
+
+      <div className="flex items-center justify-between gap-3 pt-1">
+        <p className="text-sm text-ink-soft">
+          {submission.archived ? "This request is archived." : ""}
+        </p>
+        <SubmissionActions id={submission.id} archived={submission.archived} />
+      </div>
     </div>
   );
 }
