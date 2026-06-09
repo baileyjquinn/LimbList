@@ -43,7 +43,6 @@ const initialFields = {
   customer_phone: "",
   customer_email: "",
   address: "",
-  job_type: "",
   tree_count: "",
   tree_condition: "",
   height_estimate: "",
@@ -70,6 +69,7 @@ export function IntakeForm({
   canUpload,
 }: IntakeFormProps) {
   const [fields, setFields] = useState(initialFields);
+  const [jobTypes, setJobTypes] = useState<string[]>([]);
   const [files, setFiles] = useState<PickedFile[]>([]);
   const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +90,7 @@ export function IntakeForm({
     ) +
     Number(
       Boolean(
-        fields.job_type ||
+        jobTypes.length > 0 ||
           fields.tree_count ||
           fields.tree_condition ||
           fields.height_estimate,
@@ -172,7 +172,11 @@ export function IntakeForm({
       try {
         setStatus("uploading");
         const media = await uploadFiles();
-        const result = await submitIntake(slug, { ...fields, media }, honeypot);
+        const result = await submitIntake(
+          slug,
+          { ...fields, job_type: jobTypes.join(", "), media },
+          honeypot,
+        );
         if (!result.ok) {
           setError(result.error);
           setStatus("idle");
@@ -239,30 +243,33 @@ export function IntakeForm({
               autoComplete="name"
             />
           </Field>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Phone number" htmlFor="customer_phone" required>
-              <input
-                id="customer_phone"
-                type="tel"
-                inputMode="tel"
-                className={inputClass}
-                value={fields.customer_phone}
-                onChange={(e) => set("customer_phone")(e.target.value)}
-                autoComplete="tel"
-              />
-            </Field>
-            <Field label="Email" htmlFor="customer_email" hint="Optional">
-              <input
-                id="customer_email"
-                type="email"
-                inputMode="email"
-                className={inputClass}
-                value={fields.customer_email}
-                onChange={(e) => set("customer_email")(e.target.value)}
-                autoComplete="email"
-              />
-            </Field>
-          </div>
+          <Field label="Phone number" htmlFor="customer_phone" required>
+            <input
+              id="customer_phone"
+              type="tel"
+              inputMode="tel"
+              className={inputClass}
+              value={fields.customer_phone}
+              onChange={(e) => set("customer_phone")(e.target.value)}
+              autoComplete="tel"
+            />
+          </Field>
+          <Field
+            label="Email"
+            htmlFor="customer_email"
+            hint="Optional — we'll send you a confirmation"
+          >
+            <input
+              id="customer_email"
+              type="email"
+              inputMode="email"
+              className={inputClass}
+              value={fields.customer_email}
+              onChange={(e) => set("customer_email")(e.target.value)}
+              autoComplete="email"
+              placeholder="you@example.com"
+            />
+          </Field>
           <Field
             label="Property address"
             htmlFor="address"
@@ -280,12 +287,13 @@ export function IntakeForm({
         </Section>
 
         <Section title="About the tree" step="2" icon={LeafIcon}>
-          <Field label="What do you need done?">
+          <Field label="What do you need done?" hint="Select all that apply">
             <ChoiceGroup
               name="job_type"
               options={JOB_TYPES}
-              value={fields.job_type}
-              onChange={set("job_type")}
+              multi
+              value={jobTypes}
+              onChange={setJobTypes}
             />
           </Field>
           <Field label="How many trees?">

@@ -27,7 +27,7 @@ const payloadSchema = z.object({
   customer_phone: z.string().trim().min(1, "Please enter a phone number").max(40),
   customer_email: z.string().trim().max(160).optional().default(""),
   address: z.string().trim().min(1, "Please enter the address").max(300),
-  job_type: z.string().trim().max(80).optional().default(""),
+  job_type: z.string().trim().max(300).optional().default(""),
   tree_count: z.string().trim().max(40).optional().default(""),
   tree_condition: z.string().trim().max(80).optional().default(""),
   height_estimate: z.string().trim().max(80).optional().default(""),

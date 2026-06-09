@@ -27,7 +27,9 @@ export const HEIGHT_ESTIMATES = [
   "Under 15 ft (1 story)",
   "15–30 ft (2 stories)",
   "30–50 ft (3+ stories)",
-  "Over 50 ft (very tall)",
+  "50–75 ft (4–5 stories)",
+  "75–100 ft (6–7 stories)",
+  "Over 100 ft",
   "Not sure",
 ] as const;
 
