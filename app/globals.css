@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   LimbList design tokens
+   Direction: warm, earthy, editorial. Forest green + cream + bark, with a
+   safety-amber accent for the things tree crews care about (power lines).
+   Large type and generous spacing keep the homeowner intake easy to use.
+--------------------------------------------------------------------------- */
+
+:root {
+  --cream: oklch(97.5% 0.015 95);
+  --cream-deep: oklch(94.5% 0.022 92);
+  --paper: oklch(99.2% 0.008 95);
+
+  --bark: oklch(34% 0.03 60);
+  --bark-soft: oklch(46% 0.03 65);
+
+  --forest: oklch(43% 0.09 152);
+  --forest-deep: oklch(33% 0.07 153);
+  --forest-bright: oklch(58% 0.13 150);
+
+  --amber: oklch(72% 0.17 65);
+  --amber-deep: oklch(55% 0.16 50);
+
+  --line: oklch(88% 0.02 90);
+  --ink: oklch(24% 0.02 70);
+  --ink-soft: oklch(46% 0.02 70);
+
+  --radius: 0.9rem;
+  --radius-lg: 1.4rem;
+  --shadow-card: 0 1px 2px oklch(34% 0.03 60 / 0.06),
+    0 8px 24px oklch(34% 0.03 60 / 0.08);
+  --shadow-lift: 0 2px 4px oklch(34% 0.03 60 / 0.08),
+    0 18px 44px oklch(34% 0.03 60 / 0.16);
+}
+
+@theme inline {
+  --color-cream: var(--cream);
+  --color-cream-deep: var(--cream-deep);
+  --color-paper: var(--paper);
+  --color-bark: var(--bark);
+  --color-bark-soft: var(--bark-soft);
+  --color-forest: var(--forest);
+  --color-forest-deep: var(--forest-deep);
+  --color-forest-bright: var(--forest-bright);
+  --color-amber: var(--amber);
+  --color-amber-deep: var(--amber-deep);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+
+  --radius-card: var(--radius);
+  --radius-xl2: var(--radius-lg);
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-geist-sans);
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+  font-optical-sizing: auto;
+}
+
+/* Subtle paper grain for atmosphere */
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  background-image: radial-gradient(
+    oklch(34% 0.03 60 / 0.09) 0.5px,
+    transparent 0.5px
+  );
+  background-size: 4px 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
