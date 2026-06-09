@@ -385,7 +385,6 @@ export function IntakeForm({
             type="file"
             accept="image/*,video/*"
             multiple
-            capture="environment"
             className="sr-only"
             onChange={(e) => handleFiles(e.target.files)}
           />
