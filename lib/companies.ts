@@ -18,6 +18,13 @@ const DEMO_COMPANY: Company = {
  * any slug resolves to a placeholder company so the UI is previewable.
  */
 export async function getCompanyBySlug(slug: string): Promise<Company | null> {
+  // The marketing site links to /intake/demo as a live preview of the customer
+  // form. Always resolve it to the built-in demo company so the form renders
+  // even in production. Demo submissions are never persisted (see submitIntake).
+  if (slug === "demo") {
+    return { ...DEMO_COMPANY };
+  }
+
   // Genuine local/preview mode: no backend at all -> placeholder company.
   if (!supabaseConfigured) {
     return { ...DEMO_COMPANY, slug, name: "Demo Tree Co" };

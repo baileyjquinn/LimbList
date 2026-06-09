@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { LeafIcon } from "@/components/icons";
-import { getCompanyBySlug } from "@/lib/companies";
+import { getCompanyBySlug, isDemoCompany } from "@/lib/companies";
 import { supabaseConfigured, serviceRoleConfigured } from "@/lib/env";
 import { IntakeForm } from "./IntakeForm";
 
@@ -17,7 +17,8 @@ export default async function IntakePage({ params }: PageProps) {
     return <NotActive />;
   }
 
-  const canUpload = supabaseConfigured && serviceRoleConfigured;
+  const isDemo = isDemoCompany(company);
+  const canUpload = supabaseConfigured && serviceRoleConfigured && !isDemo;
 
   return (
     <main className="hero-glow relative min-h-full">
@@ -29,6 +30,21 @@ export default async function IntakePage({ params }: PageProps) {
             for {company.name}
           </span>
         </header>
+
+        {isDemo && (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[--radius-card] border border-forest/25 bg-forest/[0.06] px-4 py-3">
+            <p className="text-sm font-medium text-forest-deep">
+              This is a live preview — the exact form your customers fill out.
+              Nothing you enter here is sent or saved.
+            </p>
+            <Link
+              href="/signup"
+              className="shrink-0 rounded-full bg-forest px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-forest-deep"
+            >
+              Get your own link
+            </Link>
+          </div>
+        )}
 
         <div className="mb-8">
           <span className="inline-flex items-center gap-2 rounded-full border border-forest/20 bg-forest/[0.07] px-3 py-1 text-sm font-semibold text-forest-deep">
