@@ -14,6 +14,9 @@ export function SignupForm() {
   );
   const [companyName, setCompanyName] = useState("");
   const slug = slugify(companyName || "your-company");
+  const appHost = (process.env.NEXT_PUBLIC_APP_URL ?? "https://limblist.com")
+    .replace(/^https?:\/\//, "")
+    .replace(/\/$/, "");
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -40,7 +43,7 @@ export function SignupForm() {
         <p className="mt-1.5 text-sm text-ink-soft">
           Your link:{" "}
           <span className="font-medium text-forest-deep">
-            limb-list.vercel.app/intake/{slug}
+            {appHost}/intake/{slug}
           </span>
         </p>
       </Labeled>
