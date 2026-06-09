@@ -107,11 +107,20 @@ export async function sendSubmissionEmail(args: SendArgs): Promise<void> {
     args.payload.job_type ? ` — ${args.payload.job_type}` : ""
   }`;
 
-  await resend.emails.send({
+  const { data, error } = await resend.emails.send({
     from,
     to: args.to,
     subject,
     html: buildHtml(args),
     replyTo: args.payload.customer_email || undefined,
   });
+
+  if (error) {
+    // Resend returns errors in the response rather than throwing.
+    throw new Error(
+      `Resend send failed: ${error.message ?? JSON.stringify(error)}`,
+    );
+  }
+
+  console.log(`[email] notification sent (id: ${data?.id ?? "?"})`);
 }
