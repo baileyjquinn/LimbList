@@ -49,6 +49,14 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
         All requests
       </Link>
 
+      {submission.notify_error && (
+        <div className="rounded-[--radius-card] border border-amber-deep/40 bg-amber/15 px-4 py-3 text-sm font-medium text-amber-deep">
+          Heads up — the email alert for this request didn&apos;t go through, so
+          you may not have been notified. The full request is saved here, so
+          nothing was lost.
+        </div>
+      )}
+
       <div className="flex flex-col gap-5 rounded-[--radius-xl2] border border-line bg-paper p-5 shadow-[var(--elevation-2)] sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>

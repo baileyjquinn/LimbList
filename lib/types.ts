@@ -43,6 +43,8 @@ export interface Submission {
   internal_notes: string | null;
   archived: boolean;
   ip_hash: string | null;
+  notified_at: string | null;
+  notify_error: string | null;
   created_at: string;
 }
 

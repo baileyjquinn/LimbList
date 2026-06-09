@@ -84,6 +84,11 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                         {s.customer_name}
                       </span>
                       <StatusBadge status={s.status} />
+                      {s.notify_error && (
+                        <span className="inline-flex items-center rounded-full border border-amber-deep/40 bg-amber/15 px-2.5 py-0.5 text-xs font-semibold text-amber-deep">
+                          Email didn&apos;t send
+                        </span>
+                      )}
                     </div>
                     <p className="mt-1 truncate text-base text-ink-soft">
                       {s.job_type ? `${s.job_type} · ` : ""}

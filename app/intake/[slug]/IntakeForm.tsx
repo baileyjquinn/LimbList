@@ -77,6 +77,8 @@ export function IntakeForm({
   const [submitted, setSubmitted] = useState(false);
   const [isPending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // When the form first rendered — used server-side to tell bots from humans.
+  const loadedAtRef = useRef<number>(Date.now());
 
   const set = (key: keyof typeof fields) => (value: string) =>
     setFields((prev) => ({ ...prev, [key]: value }));
@@ -176,6 +178,7 @@ export function IntakeForm({
           slug,
           { ...fields, job_type: jobTypes.join(", "), media },
           honeypot,
+          Date.now() - loadedAtRef.current,
         );
         if (!result.ok) {
           setError(result.error);

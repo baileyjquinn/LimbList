@@ -16,6 +16,11 @@ const RATE_LIMIT_WINDOW_MIN = 10;
 const RATE_LIMIT_MAX = 6;
 // Pepper so stored fingerprints aren't reversible plain IPs.
 const IP_PEPPER = "limblist:v1";
+// A real person filling a multi-field form takes seconds. A scripted bot
+// submits near-instantly. We only treat the honeypot as a bot signal when the
+// form was ALSO submitted implausibly fast — that way an over-eager autofill
+// can't silently eat a genuine (slow) homeowner's submission.
+const MIN_HUMAN_FILL_MS = 2500;
 
 const mediaSchema = z.object({
   path: z.string().min(1).max(500),
@@ -51,9 +56,11 @@ export async function submitIntake(
   slug: string,
   rawPayload: IntakePayload,
   honeypot = "",
+  elapsedMs = 0,
 ): Promise<SubmitResult> {
-  // Bots fill hidden fields. Pretend success so we don't tip them off.
-  if (honeypot.trim() !== "") {
+  // Bot signal: hidden field filled AND form submitted implausibly fast.
+  // Pretend success so we don't tip the bot off, but never drop a real human.
+  if (honeypot.trim() !== "" && elapsedMs > 0 && elapsedMs < MIN_HUMAN_FILL_MS) {
     return { ok: true };
   }
 
@@ -69,9 +76,21 @@ export async function submitIntake(
     return { ok: false, error: "This intake link is not active." };
   }
 
-  // Demo mode: nothing to persist, just succeed so the UI is testable.
-  if (!supabaseConfigured || !serviceRoleConfigured || isDemoCompany(company)) {
+  // Genuine local/preview demo: nothing to persist, just succeed so the UI is
+  // testable without a backend.
+  if (!supabaseConfigured || isDemoCompany(company)) {
     return { ok: true };
+  }
+
+  // Supabase is live but the service role key is missing. Do NOT fake success —
+  // a silently dropped lead is worse than an honest error.
+  if (!serviceRoleConfigured) {
+    console.error("submitIntake: service role key missing; cannot persist");
+    return {
+      ok: false,
+      error:
+        "We couldn't send your request right now. Please call the company directly.",
+    };
   }
 
   const admin = createAdminClient();
@@ -134,6 +153,9 @@ export async function submitIntake(
     }
   }
 
+  // Send the company notification and record the outcome on the row, so a
+  // failed notification is visible in the dashboard instead of vanishing.
+  let notifyError: string | null = null;
   try {
     await sendSubmissionEmail({
       to: company.notify_email,
@@ -142,9 +164,20 @@ export async function submitIntake(
       payload,
     });
   } catch (error) {
+    notifyError =
+      error instanceof Error ? error.message : "Unknown email error";
     console.error("notification email failed", error);
-    // Email failure must not fail the submission.
+    // Email failure must not fail the submission — the lead is already saved.
   }
+
+  await admin
+    .from("submissions")
+    .update(
+      notifyError
+        ? { notify_error: notifyError }
+        : { notified_at: new Date().toISOString(), notify_error: null },
+    )
+    .eq("id", submission.id);
 
   if (payload.customer_email) {
     try {
