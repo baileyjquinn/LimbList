@@ -388,9 +388,15 @@ function SiteFooter() {
     <footer className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
       <div className="flex flex-col items-center justify-between gap-4 border-t border-line pt-6 sm:flex-row">
         <Logo />
-        <span className="text-sm text-ink-soft">
-          © {new Date().getFullYear()} LimbList
-        </span>
+        <div className="flex items-center gap-5 text-sm text-ink-soft">
+          <Link href="/privacy" className="transition-colors hover:text-forest-deep">
+            Privacy
+          </Link>
+          <Link href="/terms" className="transition-colors hover:text-forest-deep">
+            Terms
+          </Link>
+          <span>© {new Date().getFullYear()} LimbList</span>
+        </div>
       </div>
     </footer>
   );

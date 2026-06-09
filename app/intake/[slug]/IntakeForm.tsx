@@ -9,6 +9,7 @@ import {
   CameraIcon,
   CheckIcon,
   LeafIcon,
+  LockIcon,
   UserIcon,
   XIcon,
 } from "@/components/icons";
@@ -459,9 +460,22 @@ export function IntakeForm({
               : "Sending…"
             : "Send to my tree pro"}
         </button>
-        <p className="text-center text-sm text-ink-soft">
-          Goes straight to {companyName}. No account needed.
-        </p>
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <p className="flex items-center justify-center gap-1.5 text-sm text-ink-soft">
+            <LockIcon className="h-3.5 w-3.5" />
+            Your photos and details go only to {companyName}.
+          </p>
+          <p className="text-xs text-ink-soft">
+            No account needed ·{" "}
+            <a href="/privacy" className="underline underline-offset-2 hover:text-forest-deep">
+              Privacy
+            </a>{" "}
+            ·{" "}
+            <a href="/terms" className="underline underline-offset-2 hover:text-forest-deep">
+              Terms
+            </a>
+          </p>
+        </div>
       </form>
     </>
   );
