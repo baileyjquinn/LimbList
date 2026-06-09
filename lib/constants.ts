@@ -3,7 +3,7 @@ import type { SubmissionStatus } from "./types";
 export const STORAGE_BUCKET = "submissions";
 
 /** Contact + legal info (change CONTACT_EMAIL to your support address). */
-export const CONTACT_EMAIL = "baileyjquinn@gmail.com";
+export const CONTACT_EMAIL = "bailey@westwellagency.com";
 export const LEGAL_UPDATED = "June 8, 2026";
 
 export const JOB_TYPES = [
