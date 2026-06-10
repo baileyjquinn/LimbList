@@ -14,6 +14,12 @@ export interface Company {
   notify_email: string;
   phone: string | null;
   created_at: string;
+  // Billing (added in migration 004; optional so pre-migration rows still type).
+  stripe_customer_id?: string | null;
+  stripe_subscription_id?: string | null;
+  subscription_status?: string | null;
+  trial_ends_at?: string | null;
+  current_period_end?: string | null;
 }
 
 export interface SubmissionMedia {

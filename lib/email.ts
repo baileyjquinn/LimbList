@@ -186,3 +186,73 @@ export async function sendCustomerConfirmationEmail(
     );
   }
 }
+
+type WelcomeArgs = {
+  to: string;
+  companyName: string;
+  intakeUrl: string;
+};
+
+function buildWelcomeHtml({ companyName, intakeUrl }: WelcomeArgs): string {
+  return `
+  <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#f6f3ea;padding:28px 16px;">
+    <div style="max-width:540px;margin:0 auto;background:#fffdf8;border:1px solid #e7e2d4;border-radius:18px;overflow:hidden;">
+      <div style="padding:22px 28px;background:#1f3d2f;color:#f6f3ea;">
+        <div style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;">LimbList</div>
+        <div style="font-size:22px;font-weight:700;margin-top:4px;">You're all set, ${escapeHtml(
+          companyName,
+        )} 🌲</div>
+      </div>
+      <div style="padding:24px 28px;color:#2a2620;font-size:16px;line-height:1.55;">
+        <p style="margin:0 0 14px;">Here's the one thing that matters — your personal intake link:</p>
+        <p style="margin:0 0 18px;">
+          <a href="${intakeUrl}" style="color:#1f3d2f;font-weight:700;font-size:17px;">${escapeHtml(
+            intakeUrl,
+          )}</a>
+        </p>
+        <p style="margin:0 0 14px;">
+          Text or email it to your next customer who wants a quote. They send
+          photos, a short video, and the details that matter — power lines,
+          access, condition — and it lands in your inbox and dashboard.
+        </p>
+        <p style="margin:0 0 6px;font-weight:600;">Two minutes to first value:</p>
+        <ol style="margin:0 0 18px;padding-left:20px;color:#4a4438;">
+          <li style="margin-bottom:4px;">Copy your link above.</li>
+          <li style="margin-bottom:4px;">Send it to one customer (or test it on yourself).</li>
+          <li>Watch the photos roll into your dashboard.</li>
+        </ol>
+        <a href="${intakeUrl}" style="display:inline-block;background:#1f3d2f;color:#fffdf8;text-decoration:none;font-weight:600;font-size:16px;padding:13px 22px;border-radius:12px;">
+          Open my intake form →
+        </a>
+        <p style="margin:20px 0 0;color:#8a8170;font-size:13px;">
+          You're on a free trial — no card needed. Reply to this email if you
+          get stuck; a real person reads it.
+        </p>
+      </div>
+    </div>
+  </div>`;
+}
+
+/**
+ * Welcome email sent right after signup. Best-effort: never blocks or fails
+ * the signup flow if email is unconfigured or Resend errors.
+ */
+export async function sendWelcomeEmail(args: WelcomeArgs): Promise<void> {
+  if (!emailConfigured || !args.to) return;
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const from = process.env.RESEND_FROM ?? "LimbList <onboarding@resend.dev>";
+
+  const { error } = await resend.emails.send({
+    from,
+    to: args.to,
+    subject: "Welcome to LimbList — here's your intake link",
+    html: buildWelcomeHtml(args),
+  });
+
+  if (error) {
+    throw new Error(
+      `Resend welcome send failed: ${error.message ?? JSON.stringify(error)}`,
+    );
+  }
+}

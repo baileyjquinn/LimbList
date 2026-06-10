@@ -18,6 +18,16 @@ export const serviceRoleConfigured = Boolean(
 
 export const emailConfigured = Boolean(process.env.RESEND_API_KEY);
 
+/**
+ * Billing is "on" only when both the Stripe secret key and the recurring
+ * price id are present. While off, the dashboard never paywalls — the app
+ * behaves exactly as it did pre-billing. This lets billing ship dark and be
+ * activated purely by setting env vars in Vercel.
+ */
+export const stripeConfigured = Boolean(
+  process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID,
+);
+
 export const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 

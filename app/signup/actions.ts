@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { serviceRoleConfigured, supabaseConfigured } from "@/lib/env";
+import { APP_URL, serviceRoleConfigured, supabaseConfigured } from "@/lib/env";
+import { sendWelcomeEmail } from "@/lib/email";
 import { slugify } from "@/lib/slug";
 
 const RESERVED = new Set([
@@ -108,6 +109,17 @@ export async function signUp(
     await admin.from("companies").delete().eq("id", company.id);
     await admin.auth.admin.deleteUser(userId);
     return { error: "Could not finish setting up your account." };
+  }
+
+  // Best-effort welcome email — never block signup on it.
+  try {
+    await sendWelcomeEmail({
+      to: email,
+      companyName,
+      intakeUrl: `${APP_URL}/intake/${slug}`,
+    });
+  } catch (err) {
+    console.error("welcome email failed", err);
   }
 
   // 4. Sign them in (sets the session cookies), then go to the dashboard.

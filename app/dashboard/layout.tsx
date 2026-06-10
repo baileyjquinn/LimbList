@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { Paywall } from "@/components/Paywall";
 import { getDashboardContext } from "@/lib/submissions";
+import { getBillingState } from "@/lib/billing";
 import { supabaseConfigured } from "@/lib/env";
 import { signOut } from "./actions";
 
@@ -18,6 +20,12 @@ export default async function DashboardLayout({
   if (!context) {
     redirect("/login");
   }
+
+  const billing = getBillingState(context.company);
+  const showTrialBanner =
+    billing.inTrial &&
+    billing.trialDaysLeft !== null &&
+    billing.trialDaysLeft <= 7;
 
   return (
     <div className="flex min-h-full flex-col">
@@ -47,8 +55,25 @@ export default async function DashboardLayout({
           </div>
         </div>
       </header>
+      {showTrialBanner && (
+        <div className="border-b border-amber/40 bg-cream-deep">
+          <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-2.5 text-sm sm:px-6">
+            <span className="text-bark">
+              {billing.trialDaysLeft === 1
+                ? "Last day of your free trial."
+                : `${billing.trialDaysLeft} days left in your free trial.`}
+            </span>
+            <Link
+              href="/dashboard/settings#billing"
+              className="shrink-0 font-semibold text-forest-deep underline-offset-2 hover:underline"
+            >
+              Subscribe →
+            </Link>
+          </div>
+        </div>
+      )}
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
-        {children}
+        {billing.hasAccess ? children : <Paywall />}
       </main>
     </div>
   );

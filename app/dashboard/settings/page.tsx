@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getDashboardContext } from "@/lib/submissions";
+import { getBillingState } from "@/lib/billing";
 import { APP_URL } from "@/lib/env";
 import { ArrowRightIcon } from "@/components/icons";
 import { ShareLink } from "../ShareLink";
 import { SettingsForm } from "./SettingsForm";
+import { BillingPanel } from "./BillingPanel";
 
 export const metadata = {
   title: "Settings — LimbList",
@@ -16,6 +18,7 @@ export default async function SettingsPage() {
 
   const { company } = context;
   const intakeUrl = `${APP_URL}/intake/${company.slug}`;
+  const billing = getBillingState(company);
 
   return (
     <div className="flex flex-col gap-6">
@@ -53,6 +56,8 @@ export default async function SettingsPage() {
           keep working.
         </p>
       </section>
+
+      <BillingPanel billing={billing} />
     </div>
   );
 }

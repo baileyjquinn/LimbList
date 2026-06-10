@@ -62,6 +62,12 @@ function SiteHeader() {
         <Logo />
         <div className="flex items-center gap-2">
           <Link
+            href="/pricing"
+            className="hidden rounded-full px-3 py-2 text-sm font-semibold text-ink-soft transition-colors duration-200 hover:text-forest-deep sm:inline-flex"
+          >
+            Pricing
+          </Link>
+          <Link
             href="/login"
             className="rounded-full px-3 py-2 text-sm font-semibold text-ink-soft transition-colors duration-200 hover:text-forest-deep"
           >
