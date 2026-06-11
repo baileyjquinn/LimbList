@@ -3,7 +3,7 @@
 --
 -- Billing model:
 --   * Signup is free, no card. Each company gets a 14-day trial.
---   * After the trial the DASHBOARD soft-locks until they subscribe ($99/mo).
+--   * After the trial the DASHBOARD soft-locks until they subscribe ($49/mo).
 --   * Intake submissions + notification emails are NEVER gated — leads always
 --     keep flowing even if a subscription lapses (core LimbList principle).
 --   * Webhook writes here via the service role (bypasses RLS). The existing
