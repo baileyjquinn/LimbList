@@ -45,3 +45,10 @@ export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) return false;
   return ADMIN_EMAILS.includes(email.toLowerCase());
 }
+
+/**
+ * Server-only promo code. When a signup supplies this code the company is
+ * activated immediately (subscription_status = 'active', no trial, no card).
+ * Never prefixed with NEXT_PUBLIC — stays out of the client bundle.
+ */
+export const PROMO_CODE = process.env.PROMO_CODE ?? "";

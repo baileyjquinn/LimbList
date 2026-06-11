@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { APP_URL, serviceRoleConfigured, supabaseConfigured } from "@/lib/env";
+import { APP_URL, PROMO_CODE, serviceRoleConfigured, supabaseConfigured } from "@/lib/env";
 import { sendWelcomeEmail } from "@/lib/email";
 import { slugify } from "@/lib/slug";
 
@@ -89,9 +89,26 @@ export async function signUp(
 
   // 2. Company with a unique slug.
   const slug = await uniqueSlug(admin, slugify(companyName));
+  const promoValid =
+    PROMO_CODE !== "" &&
+    String(formData.get("promoCode") ?? "").trim().toLowerCase() ===
+      PROMO_CODE.toLowerCase();
+
+  const companyInsert: Record<string, unknown> = {
+    name: companyName,
+    slug,
+    notify_email: email,
+  };
+  if (promoValid) {
+    companyInsert.subscription_status = "active";
+    companyInsert.current_period_end = new Date(
+      Date.now() + 10 * 365 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+  }
+
   const { data: company, error: compErr } = await admin
     .from("companies")
-    .insert({ name: companyName, slug, notify_email: email })
+    .insert(companyInsert)
     .select("id")
     .single();
   if (compErr || !company) {

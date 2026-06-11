@@ -80,6 +80,16 @@ export function SignupForm() {
         />
       </Labeled>
 
+      <Labeled label="Promo code" htmlFor="promoCode" hint="Optional">
+        <input
+          id="promoCode"
+          name="promoCode"
+          autoComplete="off"
+          className={inputClass}
+          placeholder="Enter code if you have one"
+        />
+      </Labeled>
+
       {state.error && (
         <p
           role="alert"
