@@ -8,7 +8,7 @@ import type { Company } from "@/lib/types";
 
 export const PLAN = {
   name: "LimbList Pro",
-  priceMonthly: 99,
+  priceMonthly: 49,
   currencySymbol: "$",
   trialDays: 14,
   tagline: "Everything you need to stop driving to dead leads.",
