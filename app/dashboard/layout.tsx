@@ -56,19 +56,31 @@ export default async function DashboardLayout({
         </div>
       </header>
       {showTrialBanner && (
-        <div className="border-b border-amber/40 bg-cream-deep">
-          <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-2.5 text-sm sm:px-6">
-            <span className="text-bark">
-              {billing.trialDaysLeft === 1
-                ? "Last day of your free trial."
-                : `${billing.trialDaysLeft} days left in your free trial.`}
-            </span>
-            <Link
-              href="/dashboard/settings#billing"
-              className="shrink-0 font-semibold text-forest-deep underline-offset-2 hover:underline"
-            >
-              Subscribe →
-            </Link>
+        <div className="border-b border-amber/30 bg-amber/10">
+          <div className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber/30 text-base">
+                  ⏳
+                </span>
+                <div>
+                  <p className="font-semibold text-bark">
+                    {billing.trialDaysLeft === 1
+                      ? "Last day of your free trial"
+                      : `${billing.trialDaysLeft} days left in your free trial`}
+                  </p>
+                  <p className="mt-0.5 text-sm text-ink-soft">
+                    Subscribe to keep your dashboard, leads, and intake link active after your trial ends.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/dashboard/settings#billing"
+                className="shrink-0 inline-flex items-center justify-center rounded-[--radius-card] bg-forest px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-forest-deep"
+              >
+                Subscribe — $49/mo
+              </Link>
+            </div>
           </div>
         </div>
       )}
