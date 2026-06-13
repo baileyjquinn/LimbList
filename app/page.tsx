@@ -104,22 +104,27 @@ function Hero() {
             </em>{" "}
             you load the truck. Fewer wasted trips. Faster quotes.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <Link
               href="/intake/demo"
-              className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-[--radius-card] bg-forest px-6 text-base font-semibold text-white shadow-[var(--elevation-2)] transition-all duration-200 hover:bg-forest-deep hover:shadow-[var(--elevation-3)]"
+              className="group relative inline-flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-[--radius-card] bg-forest px-7 text-base font-semibold text-white shadow-[var(--elevation-3)] ring-2 ring-forest/25 ring-offset-2 ring-offset-cream transition-all duration-200 hover:bg-forest-deep hover:shadow-[var(--elevation-4)] hover:ring-forest/40 sm:w-auto"
             >
-              See the customer form
+              <BoltIcon className="h-5 w-5" />
+              Try the live demo
               <ArrowRightIcon className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
             <Link
               href="/signup"
-              className="inline-flex min-h-12 items-center justify-center rounded-[--radius-card] border border-line bg-paper px-6 text-base font-semibold text-ink transition-colors duration-200 hover:border-forest/40"
+              className="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-[--radius-card] border border-line bg-paper px-6 text-base font-semibold text-ink transition-colors duration-200 hover:border-forest/40 sm:w-auto"
             >
               Start free
             </Link>
           </div>
-          <p className="mt-5 flex items-center gap-2 text-sm text-ink-soft">
+          <p className="mt-4 flex items-center gap-2 text-sm font-medium text-forest-deep">
+            <CheckIcon className="h-4 w-4 text-forest" />
+            No signup needed — it&apos;s the exact form your customers fill out.
+          </p>
+          <p className="mt-2 flex items-center gap-2 text-sm text-ink-soft">
             <CheckIcon className="h-4 w-4 text-forest" />
             Built with a working tree crew — no fluff, just what you need to quote.
           </p>
