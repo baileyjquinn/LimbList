@@ -11,6 +11,13 @@ type Admin = ReturnType<typeof createAdminClient>;
 // submission that hasn't written its media rows yet.
 const ORPHAN_MIN_AGE_MS = 2 * 60 * 60 * 1000; // 2 hours
 
+// Throwaway / internal test accounts hidden from the admin overview and stats.
+const EXCLUDED_SLUGS = new Set<string>(["test-tree-company"]);
+
+// A brand-new signup with 0 requests isn't "at risk" yet — give them a couple
+// days (and time for an outreach email to land) before flagging.
+const ACTIVATION_GRACE_MS = 2 * 24 * 60 * 60 * 1000; // 2 days
+
 export type BillingLabel =
   | "paying"
   | "trial"
@@ -91,8 +98,10 @@ function classifyBilling(
     };
   }
 
-  // Live trial — flag the ones at risk of never converting.
-  if (submissionCount === 0) {
+  // Live trial — flag the ones at risk of never converting, but give brand-new
+  // signups a grace window so a just-sent welcome email has time to land.
+  const accountAgeMs = Date.now() - new Date(company.created_at).getTime();
+  if (submissionCount === 0 && accountAgeMs >= ACTIVATION_GRACE_MS) {
     return {
       label: "trial",
       trialDaysLeft,
@@ -178,6 +187,11 @@ export async function listAllCompanies(): Promise<CompanyOverview[]> {
     return [];
   }
 
+  // Drop throwaway/internal test accounts so they don't pollute stats.
+  const visibleCompanies = (companies as Company[]).filter(
+    (c) => !EXCLUDED_SLUGS.has(c.slug),
+  );
+
   // Owner names, keyed by company.
   const { data: profiles } = await admin
     .from("profiles")
@@ -208,7 +222,7 @@ export async function listAllCompanies(): Promise<CompanyOverview[]> {
     if (!prev || row.created_at > prev) latest.set(row.company_id, row.created_at);
   });
 
-  return (companies as Company[]).map((c) => {
+  return visibleCompanies.map((c) => {
     const submissionCount = counts.get(c.id) ?? 0;
     const billing = classifyBilling(c, submissionCount);
     return {
