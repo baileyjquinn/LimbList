@@ -37,6 +37,10 @@ export interface Submission {
   customer_phone: string;
   customer_email: string | null;
   address: string;
+  street: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
   job_type: string | null;
   tree_count: string | null;
   tree_condition: string | null;
@@ -65,7 +69,12 @@ export interface IntakePayload {
   customer_name: string;
   customer_phone: string;
   customer_email: string;
+  /** Composed address line — derived server-side from the parts below. */
   address: string;
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
   job_type: string;
   tree_count: string;
   tree_condition: string;

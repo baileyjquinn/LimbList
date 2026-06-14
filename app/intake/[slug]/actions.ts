@@ -10,6 +10,7 @@ import {
   sendSubmissionEmail,
 } from "@/lib/email";
 import { serviceRoleConfigured, supabaseConfigured } from "@/lib/env";
+import { composeAddress } from "@/lib/format";
 import type { IntakePayload } from "@/lib/types";
 
 const RATE_LIMIT_WINDOW_MIN = 10;
@@ -31,7 +32,11 @@ const payloadSchema = z.object({
   customer_name: z.string().trim().min(1, "Please enter your name").max(120),
   customer_phone: z.string().trim().min(1, "Please enter a phone number").max(40),
   customer_email: z.string().trim().max(160).optional().default(""),
-  address: z.string().trim().min(1, "Please enter the address").max(300),
+  street: z.string().trim().min(1, "Please enter the street address").max(200),
+  city: z.string().trim().min(1, "Please enter the city").max(120),
+  state: z.string().trim().min(1, "Please enter the state").max(60),
+  zip: z.string().trim().min(1, "Please enter the ZIP code").max(20),
+  address: z.string().trim().max(400).optional().default(""),
   job_type: z.string().trim().max(300).optional().default(""),
   tree_count: z.string().trim().max(40).optional().default(""),
   tree_condition: z.string().trim().max(80).optional().default(""),
@@ -69,7 +74,12 @@ export async function submitIntake(
     const first = parsed.error.issues[0]?.message ?? "Invalid submission";
     return { ok: false, error: first };
   }
-  const payload = parsed.data;
+  // Compose the structured parts into the canonical address line used by the
+  // email, dashboard, search, and Maps link. Never trust a client-sent address.
+  const payload = {
+    ...parsed.data,
+    address: composeAddress(parsed.data),
+  };
 
   const company = await getCompanyBySlug(slug);
   if (!company) {
@@ -121,6 +131,10 @@ export async function submitIntake(
       customer_phone: payload.customer_phone,
       customer_email: payload.customer_email || null,
       address: payload.address,
+      street: payload.street,
+      city: payload.city,
+      state: payload.state,
+      zip: payload.zip,
       job_type: payload.job_type || null,
       tree_count: payload.tree_count || null,
       tree_condition: payload.tree_condition || null,

@@ -43,7 +43,10 @@ const initialFields = {
   customer_name: "",
   customer_phone: "",
   customer_email: "",
-  address: "",
+  street: "",
+  city: "",
+  state: "",
+  zip: "",
   tree_count: "",
   tree_condition: "",
   height_estimate: "",
@@ -88,7 +91,12 @@ export function IntakeForm({
   const sectionsDone =
     Number(
       Boolean(
-        fields.customer_name && fields.customer_phone && fields.address,
+        fields.customer_name &&
+          fields.customer_phone &&
+          fields.street &&
+          fields.city &&
+          fields.state &&
+          fields.zip,
       ),
     ) +
     Number(
@@ -168,8 +176,11 @@ export function IntakeForm({
     if (!fields.customer_name.trim()) return setError("Please enter your name.");
     if (!fields.customer_phone.trim())
       return setError("Please enter a phone number so they can reach you.");
-    if (!fields.address.trim())
-      return setError("Please enter the property address.");
+    if (!fields.street.trim())
+      return setError("Please enter the street address.");
+    if (!fields.city.trim()) return setError("Please enter the city.");
+    if (!fields.state.trim()) return setError("Please enter the state.");
+    if (!fields.zip.trim()) return setError("Please enter the ZIP code.");
 
     startTransition(async () => {
       try {
@@ -177,7 +188,7 @@ export function IntakeForm({
         const media = await uploadFiles();
         const result = await submitIntake(
           slug,
-          { ...fields, job_type: jobTypes.join(", "), media },
+          { ...fields, address: "", job_type: jobTypes.join(", "), media },
           honeypot,
           Date.now() - loadedAtRef.current,
         );
@@ -278,19 +289,53 @@ export function IntakeForm({
             />
           </Field>
           <Field
-            label="Property address"
-            htmlFor="address"
-            hint="Where is the tree?"
+            label="Street address"
+            htmlFor="street"
+            hint="Where is the tree? Include the house number."
             required
           >
             <input
-              id="address"
+              id="street"
               className={inputClass}
-              value={fields.address}
-              onChange={(e) => set("address")(e.target.value)}
-              autoComplete="street-address"
+              value={fields.street}
+              onChange={(e) => set("street")(e.target.value)}
+              autoComplete="address-line1"
+              placeholder="123 Oak St"
             />
           </Field>
+          <Field label="City" htmlFor="city" required>
+            <input
+              id="city"
+              className={inputClass}
+              value={fields.city}
+              onChange={(e) => set("city")(e.target.value)}
+              autoComplete="address-level2"
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="State" htmlFor="state" required>
+              <input
+                id="state"
+                className={inputClass}
+                value={fields.state}
+                onChange={(e) => set("state")(e.target.value)}
+                autoComplete="address-level1"
+                placeholder="NC"
+              />
+            </Field>
+            <Field label="ZIP code" htmlFor="zip" required>
+              <input
+                id="zip"
+                type="text"
+                inputMode="numeric"
+                className={inputClass}
+                value={fields.zip}
+                onChange={(e) => set("zip")(e.target.value)}
+                autoComplete="postal-code"
+                placeholder="28202"
+              />
+            </Field>
+          </div>
         </Section>
 
         <Section title="About the tree" step="2" icon={LeafIcon}>

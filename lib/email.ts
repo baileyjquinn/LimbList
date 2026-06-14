@@ -45,6 +45,20 @@ function buildHtml({ companyName, submissionId, payload }: SendArgs): string {
     .join(" + ");
 
   const detailUrl = `${APP_URL}/dashboard/${submissionId}`;
+  const mapsHref = payload.address
+    ? `https://maps.google.com/?q=${encodeURIComponent(payload.address)}`
+    : "";
+  const addressRow = payload.address
+    ? `
+      <tr>
+        <td style="padding:6px 16px 6px 0;color:#6b6256;font-size:14px;vertical-align:top;white-space:nowrap;">Address</td>
+        <td style="padding:6px 0;font-size:15px;font-weight:600;">
+          <a href="${mapsHref}" style="color:#1f3d2f;text-decoration:underline;">${escapeHtml(
+            payload.address,
+          )}</a>
+        </td>
+      </tr>`
+    : "";
 
   const flagBlock = flags.length
     ? `<div style="margin:0 0 20px;padding:14px 18px;background:#fbf0dd;border:1px solid #e7c98c;border-radius:12px;">
@@ -72,7 +86,7 @@ function buildHtml({ companyName, submissionId, payload }: SendArgs): string {
         <table style="border-collapse:collapse;width:100%;">
           ${row("Phone", payload.customer_phone)}
           ${row("Email", payload.customer_email)}
-          ${row("Address", payload.address)}
+          ${addressRow}
           ${row("Trees", payload.tree_count)}
           ${row("Condition", payload.tree_condition)}
           ${row("Height", payload.height_estimate)}
