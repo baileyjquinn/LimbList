@@ -201,6 +201,75 @@ export async function sendCustomerConfirmationEmail(
   }
 }
 
+type SignupAlertArgs = {
+  to: string[];
+  companyName: string;
+  fullName: string;
+  email: string;
+  intakeUrl: string;
+  isPromo: boolean;
+};
+
+function buildSignupAlertHtml({
+  companyName,
+  fullName,
+  email,
+  intakeUrl,
+  isPromo,
+}: SignupAlertArgs): string {
+  const planLine = isPromo
+    ? "Promo code used — activated free (no trial)."
+    : "On the 14-day free trial.";
+  return `
+  <div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#f6f3ea;padding:28px 16px;">
+    <div style="max-width:520px;margin:0 auto;background:#fffdf8;border:1px solid #e7e2d4;border-radius:18px;overflow:hidden;">
+      <div style="padding:22px 28px;background:#1f3d2f;color:#f6f3ea;">
+        <div style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;">LimbList · New signup 🌲</div>
+        <div style="font-size:22px;font-weight:700;margin-top:4px;">${escapeHtml(
+          companyName,
+        )}</div>
+      </div>
+      <div style="padding:24px 28px;">
+        <table style="border-collapse:collapse;width:100%;">
+          ${row("Owner", fullName)}
+          ${row("Email", email)}
+          ${row("Plan", planLine)}
+          ${row("Intake link", intakeUrl)}
+        </table>
+        <a href="${APP_URL}/admin" style="display:inline-block;margin-top:24px;background:#1f3d2f;color:#fffdf8;text-decoration:none;font-weight:600;font-size:16px;padding:13px 22px;border-radius:12px;">
+          Open admin dashboard →
+        </a>
+      </div>
+    </div>
+  </div>`;
+}
+
+/**
+ * Owner alert sent when a new company signs up. Best-effort: never blocks or
+ * fails the signup flow. No-ops if email is unconfigured or no admins are set.
+ */
+export async function sendSignupAlertEmail(
+  args: SignupAlertArgs,
+): Promise<void> {
+  if (!emailConfigured || args.to.length === 0) return;
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const from = process.env.RESEND_FROM ?? "LimbList <onboarding@resend.dev>";
+
+  const { error } = await resend.emails.send({
+    from,
+    to: args.to,
+    subject: `🌲 New LimbList signup: ${args.companyName}`,
+    html: buildSignupAlertHtml(args),
+  });
+
+  if (error) {
+    throw new Error(
+      `Resend signup alert failed: ${error.message ?? JSON.stringify(error)}`,
+    );
+  }
+}
+
 type WelcomeArgs = {
   to: string;
   companyName: string;

@@ -36,7 +36,7 @@ export const APP_URL =
  * page. Server-only — never prefixed with NEXT_PUBLIC. If unset, no one is an
  * admin and the page 404s for everyone.
  */
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
+export const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
   .split(",")
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean);

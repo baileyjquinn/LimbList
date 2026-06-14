@@ -4,8 +4,14 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { APP_URL, PROMO_CODE, serviceRoleConfigured, supabaseConfigured } from "@/lib/env";
-import { sendWelcomeEmail } from "@/lib/email";
+import {
+  ADMIN_EMAILS,
+  APP_URL,
+  PROMO_CODE,
+  serviceRoleConfigured,
+  supabaseConfigured,
+} from "@/lib/env";
+import { sendSignupAlertEmail, sendWelcomeEmail } from "@/lib/email";
 import { slugify } from "@/lib/slug";
 
 const RESERVED = new Set([
@@ -128,15 +134,27 @@ export async function signUp(
     return { error: "Could not finish setting up your account." };
   }
 
+  const intakeUrl = `${APP_URL}/intake/${slug}`;
+
   // Best-effort welcome email — never block signup on it.
   try {
-    await sendWelcomeEmail({
-      to: email,
-      companyName,
-      intakeUrl: `${APP_URL}/intake/${slug}`,
-    });
+    await sendWelcomeEmail({ to: email, companyName, intakeUrl });
   } catch (err) {
     console.error("welcome email failed", err);
+  }
+
+  // Best-effort owner alert — never block signup on it.
+  try {
+    await sendSignupAlertEmail({
+      to: ADMIN_EMAILS,
+      companyName,
+      fullName,
+      email,
+      intakeUrl,
+      isPromo: promoValid,
+    });
+  } catch (err) {
+    console.error("signup alert email failed", err);
   }
 
   // 4. Sign them in (sets the session cookies), then go to the dashboard.
